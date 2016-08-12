@@ -50,7 +50,6 @@ import org.pentaho.di.core.fileinput.CharsetToolkit;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLCheck;
-
 import com.wcohen.ss.Jaro;
 import com.wcohen.ss.JaroWinkler;
 import com.wcohen.ss.NeedlemanWunsch;
@@ -1376,6 +1375,10 @@ public class ValueDataUtil {
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTime( metaA.getDate( dataA ) );
+    Boolean old_date = Boolean.parseBoolean( Const.getEnvironmentVariable( Const.KETTLE_OLD_DATE_CALCULATION_TIMEZONE_DECOMPOSITION, "false" ) );
+    if ( !old_date ) {
+      calendar.setTimeZone( metaA.getDateFormatTimeZone() );
+    }
     return new Long( calendar.get( Calendar.HOUR_OF_DAY ) );
   }
 

@@ -431,6 +431,12 @@
     <variable>KETTLE_SPLIT_FIELDS_REMOVE_ENCLOSURE</variable>
     <default-value>false</default-value>
   </kettle-variable>
+  
+  <kettle-variable>
+    <description>Set this variable to false to for resolve issue with changing timezone in "Calculator" step. Changing it to true will switch off fix and calculation hour of day fill, value will get from local timezone.</description>
+    <variable>KETTLE_OLD_DATE_CALCULATION_TIMEZONE_DECOMPOSITION</variable>
+    <default-value>false</default-value>
+  </kettle-variable>
 
 </kettle-variables>
 
