@@ -1018,6 +1018,10 @@ public class Const {
   public static final String KETTLE_DEFAULT_TIMESTAMP_FORMAT = "KETTLE_DEFAULT_TIMESTAMP_FORMAT";
 
   /**
+   * The name of the variable that switch off fix for calculation of timezone decomposition
+   */
+  public static final String KETTLE_OLD_DATE_CALCULATION_TIMEZONE_DECOMPOSITION = "KETTLE_OLD_DATE_CALCULATION_TIMEZONE_DECOMPOSITION";
+  /**
    * Variable that is responsible for removing enclosure symbol after splitting the string
    */
   public static final String KETTLE_SPLIT_FIELDS_REMOVE_ENCLOSURE = "KETTLE_SPLIT_FIELDS_REMOVE_ENCLOSURE";

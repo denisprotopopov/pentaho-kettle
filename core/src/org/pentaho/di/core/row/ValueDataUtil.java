@@ -46,11 +46,15 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.fileinput.CharsetToolkit;
 import org.pentaho.di.core.util.Utils;
+import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLCheck;
-
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import com.wcohen.ss.Jaro;
 import com.wcohen.ss.JaroWinkler;
 import com.wcohen.ss.NeedlemanWunsch;
@@ -1376,6 +1380,11 @@ public class ValueDataUtil {
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTime( metaA.getDate( dataA ) );
+    String val = Const.getEnvironmentVariable(Const.KETTLE_OLD_DATE_CALCULATION_TIMEZONE_DECOMPOSITION, "N" );
+    Boolean old_date = ValueMetaBase.convertStringToBoolean( val );
+    if(!old_date){
+    	calendar.setTimeZone(metaA.getDateFormatTimeZone());
+    }
     return new Long( calendar.get( Calendar.HOUR_OF_DAY ) );
   }
 
