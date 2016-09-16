@@ -102,7 +102,7 @@ public class ValueDataUtil {
   private static int readRound2Mode() {
     int round2Mode = ROUND_2_MODE_DEFAULT_VALUE;
     final String rpaValue = System.getProperty( SYS_PROPERTY_ROUND_2_MODE );
-    if ( Const.isEmpty( rpaValue ) ) {
+    if ( Utils.isEmpty( rpaValue ) ) {
       round2Mode = ROUND_2_MODE_DEFAULT_VALUE;
       log.debug( "System property is omitted: ROUND_2_MODE. Default value used: " + SYS_PROPERTY_ROUND_2_MODE_DEFAULT_VALUE + "." );
     } else if ( SYS_PROPERTY_ROUND_2_MODE_DEFAULT_VALUE.equals( rpaValue ) ) {
@@ -551,7 +551,9 @@ public class ValueDataUtil {
       return null;
     }
     if ( dataA == null && dataB != null ) {
-      return metaA.convertData( metaB, dataB );
+      Object value = metaA.convertData( metaB, dataB );
+      metaA.setStorageType( ValueMetaInterface.STORAGE_TYPE_NORMAL );
+      return value;
     }
     if ( dataA != null && dataB == null ) {
       return dataA;
@@ -1086,6 +1088,35 @@ public class ValueDataUtil {
     }
   }
 
+  /**
+   * Returns the remainder (modulus) of A / B.
+   *
+   * @param metaA
+   * @param dataA
+   *          The dividend
+   * @param metaB
+   * @param dataB
+   *          The divisor
+   * @return The remainder
+   * @throws KettleValueException
+   */
+  public static Object remainder( ValueMetaInterface metaA, Object dataA, ValueMetaInterface metaB, Object dataB ) throws KettleValueException {
+    if ( dataA == null || dataB == null ) {
+      return null;
+    }
+
+    switch ( metaA.getType() ) {
+      case ValueMetaInterface.TYPE_NUMBER:
+        return new Double( Math.IEEEremainder( metaA.getNumber( dataA ).doubleValue(), metaB.getNumber( dataB ).doubleValue() ) );
+      case ValueMetaInterface.TYPE_INTEGER:
+        return new Long( metaA.getInteger( dataA ) % metaB.getInteger( dataB ) );
+      case ValueMetaInterface.TYPE_BIGNUMBER:
+        return metaA.getBigNumber( dataA ).remainder( metaB.getBigNumber( dataB ), MathContext.DECIMAL64 );
+      default:
+        throw new KettleValueException( "The 'remainder' function only works on numeric data" );
+    }
+  }
+
   public static Object nvl( ValueMetaInterface metaA, Object dataA, ValueMetaInterface metaB, Object dataB ) throws KettleValueException {
     switch ( metaA.getType() ) {
       case ValueMetaInterface.TYPE_STRING:
@@ -1270,7 +1301,7 @@ public class ValueDataUtil {
       long startL = stDateCal.getTimeInMillis() + stDateCal.getTimeZone().getOffset( stDateCal.getTimeInMillis() );
       long diff = endL - startL;
 
-      if ( Const.isEmpty( resultType ) ) {
+      if ( Utils.isEmpty( resultType ) ) {
         return new Long( diff / 86400000 );
       } else if ( resultType.equals( "ms" ) ) {
         return new Long( diff );
@@ -1314,7 +1345,7 @@ public class ValueDataUtil {
           iNoOfWorkingDays += 1;
         }
         calFrom.add( Calendar.DATE, 1 );
-      } while ( calFrom.getTimeInMillis() < calTo.getTimeInMillis() );
+      } while ( calFrom.getTimeInMillis() <= calTo.getTimeInMillis() );
       return new Long( singminus ? -iNoOfWorkingDays : iNoOfWorkingDays );
     } else {
       return null;
@@ -1380,11 +1411,13 @@ public class ValueDataUtil {
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTime( metaA.getDate( dataA ) );
+
     String val = Const.getEnvironmentVariable(Const.KETTLE_OLD_DATE_CALCULATION_TIMEZONE_DECOMPOSITION, "N" );
     Boolean old_date = ValueMetaBase.convertStringToBoolean( val );
     if(!old_date){
     	calendar.setTimeZone(metaA.getDateFormatTimeZone());
     }
+
     return new Long( calendar.get( Calendar.HOUR_OF_DAY ) );
   }
 

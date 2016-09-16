@@ -25,6 +25,7 @@ package org.pentaho.di.core.database;
 import java.sql.ResultSet;
 
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -116,12 +117,10 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
       // the database name can be a SID (starting with :) or a Service (starting with /)
       // <host>:<port>/<service>
       // <host>:<port>:<SID>
-      if ( databaseName != null && databaseName.length() > 0
-          && ( databaseName.startsWith( "/" ) || databaseName.startsWith( ":" ) ) ) {
+      if ( !Utils.isEmpty( databaseName ) && ( databaseName.startsWith( "/" ) || databaseName.startsWith( ":" ) ) ) {
         return "jdbc:oracle:thin:@" + hostname + ":" + port + databaseName;
-      } else if ( Const.isEmpty( hostname ) && ( Const.isEmpty( port ) || port.equals( "-1" ) ) ) { // -1 when file
-                                                                                                    // based stored
-                                                                                                    // connection
+      } else if ( Utils.isEmpty( hostname ) && ( Utils.isEmpty( port ) || port.equals( "-1" ) ) ) {
+        // -1 when file based stored                                                                                                    // connection
         // support RAC with a self defined URL in databaseName like
         // (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = host1-vip)(PORT = 1521))(ADDRESS = (PROTOCOL = TCP)(HOST =
         // host2-vip)(PORT = 1521))(LOAD_BALANCE = yes)(CONNECT_DATA =(SERVER = DEDICATED)(SERVICE_NAME =
@@ -224,6 +223,11 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
     return "SELECT " + sequenceName + ".nextval FROM dual";
   }
 
+  @Override
+  public boolean supportsSequenceNoMaxValueOption() {
+    return true;
+  }
+
   /**
    * @return true if we need to supply the schema-name to getTables in order to get a correct list of items.
    */
@@ -285,6 +289,11 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
   public String getDropColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean use_autoinc,
     String pk, boolean semicolon ) {
     return "ALTER TABLE " + tablename + " DROP ( " + v.getName() + " ) " + Const.CR;
+  }
+
+  @Override
+  public boolean supportsTimestampDataType() {
+    return true;
   }
 
   /**
@@ -614,7 +623,7 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
    */
   @Override
   public String getTablespaceDDL( VariableSpace variables, DatabaseMeta databaseMeta, String tablespace ) {
-    if ( !Const.isEmpty( tablespace ) ) {
+    if ( !Utils.isEmpty( tablespace ) ) {
       return "TABLESPACE " + databaseMeta.quoteField( variables.environmentSubstitute( tablespace ) );
     } else {
       return "";

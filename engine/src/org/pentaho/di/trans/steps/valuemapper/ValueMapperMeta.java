@@ -24,9 +24,11 @@ package org.pentaho.di.trans.steps.valuemapper;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
@@ -168,7 +170,7 @@ public class ValueMapperMeta extends BaseStepMeta implements StepMetaInterface {
   public void getFields( RowMetaInterface r, String name, RowMetaInterface[] info, StepMeta nextStep,
     VariableSpace space, Repository repository, IMetaStore metaStore ) {
     ValueMetaInterface extra = null;
-    if ( !Const.isEmpty( getTargetField() ) ) {
+    if ( !Utils.isEmpty( getTargetField() ) ) {
       extra = new ValueMetaString( getTargetField() );
 
       // Lengths etc?
@@ -190,7 +192,7 @@ public class ValueMapperMeta extends BaseStepMeta implements StepMetaInterface {
       extra.setOrigin( name );
       r.addValueMeta( extra );
     } else {
-      if ( !Const.isEmpty( getFieldToUse() ) ) {
+      if ( !Utils.isEmpty( getFieldToUse() ) ) {
         extra = r.searchValueMeta( getFieldToUse() );
       }
     }
@@ -252,14 +254,18 @@ public class ValueMapperMeta extends BaseStepMeta implements StepMetaInterface {
       rep.saveStepAttribute( id_transformation, id_step, "non_match_default", nonMatchDefault );
 
       for ( int i = 0; i < sourceValue.length; i++ ) {
-        rep.saveStepAttribute( id_transformation, id_step, i, "source_value", sourceValue[i] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "target_value", targetValue[i] );
+        rep.saveStepAttribute( id_transformation, id_step, i, "source_value", getNullOrEmpty( sourceValue[i] ) );
+        rep.saveStepAttribute( id_transformation, id_step, i, "target_value", getNullOrEmpty( targetValue[i] ) );
       }
     } catch ( Exception e ) {
       throw new KettleException( BaseMessages.getString(
         PKG, "ValueMapperMeta.RuntimeError.UnableToSaveRepository.VALUEMAPPER0006", "" + id_step ), e );
     }
 
+  }
+
+  private String getNullOrEmpty( String str ) {
+    return str == null ? StringUtils.EMPTY : str;
   }
 
   @Override

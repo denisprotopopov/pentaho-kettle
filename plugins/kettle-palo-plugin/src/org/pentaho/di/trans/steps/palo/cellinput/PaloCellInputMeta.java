@@ -27,6 +27,7 @@ import java.util.List;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -80,11 +81,13 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
     this.databaseMeta = database;
   }
 
+  @Override
   public void loadXML( final Node stepnode, final List<DatabaseMeta> databases, final IMetaStore metaStore )
     throws KettleXMLException {
     readData( stepnode, databases );
   }
 
+  @Override
   public Object clone() {
     PaloCellInputMeta retval = (PaloCellInputMeta) super.clone();
     return retval;
@@ -117,9 +120,11 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
     }
   }
 
+  @Override
   public void setDefault() {
   }
 
+  @Override
   public void getFields( final RowMetaInterface row, final String origin, final RowMetaInterface[] info,
       final StepMeta nextStep, final VariableSpace space, Repository repository, IMetaStore metaStore )
     throws KettleStepException {
@@ -140,6 +145,7 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
     }
   }
 
+  @Override
   public String getXML() {
     StringBuffer retval = new StringBuffer();
 
@@ -161,6 +167,7 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
     return retval.toString();
   }
 
+  @Override
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId idStep, List<DatabaseMeta> databases )
     throws KettleException {
     try {
@@ -183,6 +190,7 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
     }
   }
 
+  @Override
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId idTransformation, ObjectId idStep )
     throws KettleException {
     try {
@@ -202,8 +210,9 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
     }
   }
 
+  @Override
   public void check( final List<CheckResultInterface> remarks, final TransMeta transMeta, final StepMeta stepMeta,
-      final RowMetaInterface prev, final String input[], final String output[], final RowMetaInterface info,
+      final RowMetaInterface prev, final String[] input, final String[] output, final RowMetaInterface info,
       VariableSpace space, Repository repository, IMetaStore metaStore ) {
     CheckResult cr;
 
@@ -217,7 +226,7 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
         cr = new CheckResult( CheckResultInterface.TYPE_RESULT_OK, "Connection to database OK", stepMeta );
         remarks.add( cr );
 
-        if ( !Const.isEmpty( cube ) ) {
+        if ( !Utils.isEmpty( cube ) ) {
           cr = new CheckResult( CheckResultInterface.TYPE_RESULT_OK, "The name of the cube is entered", stepMeta );
           remarks.add( cr );
         } else {
@@ -228,11 +237,11 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
           cr = new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, "Measure field is empty.", stepMeta );
           remarks.add( cr );
         } else {
-          if ( Const.isEmpty( this.cubeMeasure.getFieldName() ) ) {
+          if ( Utils.isEmpty( this.cubeMeasure.getFieldName() ) ) {
             cr = new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, "Measure field Name is empty.", stepMeta );
             remarks.add( cr );
           }
-          if ( Const.isEmpty( this.cubeMeasure.getFieldType() ) ) {
+          if ( Utils.isEmpty( this.cubeMeasure.getFieldType() ) ) {
             cr = new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, "Measure field Type is empty.", stepMeta );
             remarks.add( cr );
           }
@@ -242,13 +251,13 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
           remarks.add( cr );
         } else {
           for ( DimensionField field : this.fields ) {
-            if ( Const.isEmpty( field.getFieldName() ) ) {
+            if ( Utils.isEmpty( field.getFieldName() ) ) {
               cr =
                   new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, "Output field for dimension "
                       + field.getDimensionName() + " is empty.", stepMeta );
               remarks.add( cr );
             }
-            if ( Const.isEmpty( field.getFieldType() ) ) {
+            if ( Utils.isEmpty( field.getFieldType() ) ) {
               cr =
                   new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, "Output field type for dimension "
                       + field.getDimensionName() + " is empty.", stepMeta );
@@ -272,11 +281,13 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
 
   }
 
+  @Override
   public StepInterface getStep( final StepMeta stepMeta, final StepDataInterface stepDataInterface, final int cnr,
       final TransMeta transMeta, final Trans trans ) {
     return new PaloCellInput( stepMeta, stepDataInterface, cnr, transMeta, trans );
   }
 
+  @Override
   public StepDataInterface getStepData() {
     try {
       return new PaloCellInputData( this.databaseMeta );
@@ -285,6 +296,7 @@ public class PaloCellInputMeta extends BaseStepMeta implements StepMetaInterface
     }
   }
 
+  @Override
   public DatabaseMeta[] getUsedDatabaseConnections() {
     if ( databaseMeta != null ) {
       return new DatabaseMeta[] { databaseMeta };

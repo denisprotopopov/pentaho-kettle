@@ -35,9 +35,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.EngineMetaInterface;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.extension.ExtensionPointHandler;
+import org.pentaho.di.core.extension.KettleExtensionPoint;
 import org.pentaho.di.core.gui.SpoonInterface;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -90,12 +93,15 @@ public class SpoonTabsDelegate extends SpoonDelegate {
     boolean canSave = true;
     for ( TabMapEntry entry : collection ) {
       if ( item.equals( entry.getTabItem() ) ) {
+        final TabItemInterface itemInterface = entry.getObject();
+        final Object managedObject = itemInterface.getManagedObject();
+
         if ( !force ) {
-          TabItemInterface itemInterface = entry.getObject();
-          if ( itemInterface.getManagedObject() != null
-            && AbstractMeta.class.isAssignableFrom( itemInterface.getManagedObject().getClass() ) ) {
-            canSave = !( (AbstractMeta) itemInterface.getManagedObject() ).hasMissingPlugins();
+          if ( managedObject != null
+            && AbstractMeta.class.isAssignableFrom( managedObject.getClass() ) ) {
+            canSave = !( (AbstractMeta) managedObject ).hasMissingPlugins();
           }
+
           if ( canSave ) {
             // Can we close this tab? Only allow users with create content perms to save
             if ( !itemInterface.canBeClosed() && createPerms ) {
@@ -113,27 +119,55 @@ public class SpoonTabsDelegate extends SpoonDelegate {
           }
         }
 
+        String beforeCloseId = null;
+        String afterCloseId = null;
+
+        if ( itemInterface instanceof TransGraph ) {
+          beforeCloseId = KettleExtensionPoint.TransBeforeClose.id;
+          afterCloseId = KettleExtensionPoint.TransAfterClose.id;
+        } else if ( itemInterface instanceof JobGraph ) {
+          beforeCloseId = KettleExtensionPoint.JobBeforeClose.id;
+          afterCloseId = KettleExtensionPoint.JobAfterClose.id;
+        }
+
+        if ( beforeCloseId != null ) {
+          try {
+            ExtensionPointHandler.callExtensionPoint( log, beforeCloseId, managedObject );
+          } catch ( KettleException e ) {
+            // prevent tab close
+            close = false;
+          }
+        }
+
         // Also clean up the log/history associated with this
         // transformation/job
         //
         if ( close ) {
-          if ( entry.getObject() instanceof TransGraph ) {
-            TransMeta transMeta = (TransMeta) entry.getObject().getManagedObject();
+          if ( itemInterface instanceof TransGraph ) {
+            TransMeta transMeta = (TransMeta) managedObject;
             spoon.delegates.trans.closeTransformation( transMeta );
             spoon.refreshTree();
             // spoon.refreshCoreObjects();
-          } else if ( entry.getObject() instanceof JobGraph ) {
-            JobMeta jobMeta = (JobMeta) entry.getObject().getManagedObject();
+          } else if ( itemInterface instanceof JobGraph ) {
+            JobMeta jobMeta = (JobMeta) managedObject;
             spoon.delegates.jobs.closeJob( jobMeta );
             spoon.refreshTree();
             // spoon.refreshCoreObjects();
-          } else if ( entry.getObject() instanceof SpoonBrowser ) {
+          } else if ( itemInterface instanceof SpoonBrowser ) {
             this.removeTab( entry );
             spoon.refreshTree();
-          } else if ( entry.getObject() instanceof Composite ) {
-            Composite comp = (Composite) entry.getObject();
+          } else if ( itemInterface instanceof Composite ) {
+            Composite comp = (Composite) itemInterface;
             if ( comp != null && !comp.isDisposed() ) {
               comp.dispose();
+            }
+          }
+
+          if ( afterCloseId != null ) {
+            try {
+              ExtensionPointHandler.callExtensionPoint( log, afterCloseId, managedObject );
+            } catch ( KettleException e ) {
+              // fails gracefully... what else could we do?
             }
           }
         }
@@ -372,7 +406,7 @@ public class SpoonTabsDelegate extends SpoonDelegate {
           String tabText = makeTabName( transMeta, entry.isShowingLocation() );
           entry.getTabItem().setText( tabText );
           String toolTipText = BaseMessages.getString( PKG, "Spoon.TabTrans.Tooltip", tabText );
-          if ( Const.isWindows() && !Const.isEmpty( transMeta.getFilename() ) ) {
+          if ( Const.isWindows() && !Utils.isEmpty( transMeta.getFilename() ) ) {
             toolTipText += Const.CR + Const.CR + transMeta.getFilename();
           }
           entry.getTabItem().setToolTipText( toolTipText );
@@ -382,7 +416,7 @@ public class SpoonTabsDelegate extends SpoonDelegate {
           String toolTipText =
             BaseMessages.getString(
               PKG, "Spoon.TabJob.Tooltip", makeTabName( jobMeta, entry.isShowingLocation() ) );
-          if ( Const.isWindows() && !Const.isEmpty( jobMeta.getFilename() ) ) {
+          if ( Const.isWindows() && !Utils.isEmpty( jobMeta.getFilename() ) ) {
             toolTipText += Const.CR + Const.CR + jobMeta.getFilename();
           }
           entry.getTabItem().setToolTipText( toolTipText );
@@ -410,11 +444,11 @@ public class SpoonTabsDelegate extends SpoonDelegate {
   }
 
   public String makeTabName( EngineMetaInterface transMeta, boolean showLocation ) {
-    if ( Const.isEmpty( transMeta.getName() ) && Const.isEmpty( transMeta.getFilename() ) ) {
+    if ( Utils.isEmpty( transMeta.getName() ) && Utils.isEmpty( transMeta.getFilename() ) ) {
       return Spoon.STRING_TRANS_NO_NAME;
     }
 
-    if ( Const.isEmpty( transMeta.getName() )
+    if ( Utils.isEmpty( transMeta.getName() )
       || spoon.delegates.trans.isDefaultTransformationName( transMeta.getName() ) ) {
       transMeta.nameFromFilename();
     }
@@ -422,7 +456,7 @@ public class SpoonTabsDelegate extends SpoonDelegate {
     String name = "";
 
     if ( showLocation ) {
-      if ( !Const.isEmpty( transMeta.getFilename() ) ) {
+      if ( !Utils.isEmpty( transMeta.getFilename() ) ) {
         // Regular file...
         //
         name += transMeta.getFilename() + " : ";

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import java.util.List;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -147,6 +148,14 @@ public class MergeJoinMeta extends BaseStepMeta implements StepMetaInterface {
     retval.allocate( nrKeys1, nrKeys2 );
     System.arraycopy( keyFields1, 0, retval.keyFields1, 0, nrKeys1 );
     System.arraycopy( keyFields2, 0, retval.keyFields2, 0, nrKeys2 );
+
+    StepIOMetaInterface stepIOMeta = new StepIOMeta( true, true, false, false, false, false );
+    List<StreamInterface> infoStreams = getStepIOMeta().getInfoStreams();
+
+    for ( StreamInterface infoStream : infoStreams ) {
+      stepIOMeta.addStream( new Stream( infoStream ) );
+    }
+    retval.ioMeta = stepIOMeta;
 
     return retval;
   }
@@ -291,7 +300,7 @@ public class MergeJoinMeta extends BaseStepMeta implements StepMetaInterface {
 
     for ( int i = 0; i < r.size(); i++ ) {
       ValueMetaInterface vmi = r.getValueMeta( i );
-      if ( vmi != null && Const.isEmpty( vmi.getName() ) ) {
+      if ( vmi != null && Utils.isEmpty( vmi.getName() ) ) {
         vmi.setOrigin( name );
       }
     }

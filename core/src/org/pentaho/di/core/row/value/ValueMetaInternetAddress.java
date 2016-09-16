@@ -25,6 +25,7 @@ package org.pentaho.di.core.row.value;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -32,6 +33,7 @@ import java.sql.Types;
 import java.util.Date;
 
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.database.DatabaseInterface;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.database.PostgreSQLDatabaseMeta;
@@ -87,7 +89,7 @@ public class ValueMetaInternetAddress extends ValueMetaDate {
           case STORAGE_TYPE_BINARY_STRING:
             return (InetAddress) convertBinaryStringToNativeType( (byte[]) object );
           case STORAGE_TYPE_INDEXED:
-            return (InetAddress) index[( (Integer) object ).intValue()];
+            return (InetAddress) index[( (Integer) object )];
           default:
             throw new KettleValueException( toString() + " : Unknown storage type " + storageType + " specified." );
         }
@@ -207,6 +209,40 @@ public class ValueMetaInternetAddress extends ValueMetaDate {
     return convertInternetAddressToString( getInternetAddress( object ) );
   }
 
+  @Override
+  public byte[] getBinaryString( Object object ) throws KettleValueException {
+    if ( isStorageBinaryString() && identicalFormat ) {
+      return (byte[]) object; // shortcut it directly for better performance.
+    }
+    if ( object == null ) {
+      return null;
+    }
+    switch ( storageType ) {
+      case STORAGE_TYPE_NORMAL:
+        return convertStringToBinaryString( getString( object ) );
+      case STORAGE_TYPE_BINARY_STRING:
+        return convertStringToBinaryString( getString(
+          convertStringToInternetAddress( convertBinaryStringToString( (byte[]) object ) ) ) );
+      case STORAGE_TYPE_INDEXED:
+        return convertStringToBinaryString(
+          convertInternetAddressToString( (InetAddress) index[( (Integer) object )] ) );
+      default:
+        throw new KettleValueException( toString() + " : Unknown storage type " + storageType + " specified." );
+    }
+  }
+
+  @Override
+  public Object convertBinaryStringToNativeType( byte[] binary ) throws KettleValueException {
+    if ( binary == null || binary.length <= 0 ) {
+      return null;
+    }
+    try {
+      return InetAddress.getByAddress( binary );
+    } catch ( UnknownHostException e ) {
+      throw new KettleValueException( e );
+    }
+  }
+
   protected InetAddress convertBigNumberToInternetAddress( BigDecimal bd ) throws KettleValueException {
     if ( bd == null ) {
       return null;
@@ -252,7 +288,7 @@ public class ValueMetaInternetAddress extends ValueMetaDate {
     //
     string = Const.trimToType( string, getTrimType() );
 
-    if ( Const.isEmpty( string ) ) {
+    if ( Utils.isEmpty( string ) ) {
       return null;
     }
 
@@ -311,11 +347,11 @@ public class ValueMetaInternetAddress extends ValueMetaDate {
     // See if we need to convert a null value into a String
     // For example, we might want to convert null into "Empty".
     //
-    if ( !Const.isEmpty( ifNull ) ) {
+    if ( !Utils.isEmpty( ifNull ) ) {
       // Note that you can't pull the pad method up here as a nullComp variable
       // because you could get an NPE since you haven't checked isEmpty(pol)
       // yet!
-      if ( Const.isEmpty( pol )
+      if ( Utils.isEmpty( pol )
         || pol.equalsIgnoreCase( Const.rightPad( new StringBuilder( null_value ), pol.length() ) ) ) {
         pol = ifNull;
       }
@@ -324,12 +360,12 @@ public class ValueMetaInternetAddress extends ValueMetaDate {
     // See if the polled value is empty
     // In that case, we have a null value on our hands...
     //
-    if ( Const.isEmpty( pol ) ) {
+    if ( Utils.isEmpty( pol ) ) {
       return null;
     } else {
       // if the null_value is specified, we try to match with that.
       //
-      if ( !Const.isEmpty( null_value ) ) {
+      if ( !Utils.isEmpty( null_value ) ) {
         if ( null_value.length() <= pol.length() ) {
           // If the polled value is equal to the spaces right-padded null_value,
           // we have a match

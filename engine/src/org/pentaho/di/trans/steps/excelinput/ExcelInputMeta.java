@@ -25,10 +25,12 @@ package org.pentaho.di.trans.steps.excelinput;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -677,7 +679,7 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
       rowLimit = Const.toLong( XMLHandler.getTagValue( stepnode, "limit" ), 0 );
       encoding = XMLHandler.getTagValue( stepnode, "encoding" );
       String addToResult = XMLHandler.getTagValue( stepnode, "add_to_result_filenames" );
-      if ( Const.isEmpty( addToResult ) ) {
+      if ( Utils.isEmpty( addToResult ) ) {
         isaddresult = true;
       } else {
         isaddresult = "Y".equalsIgnoreCase( addToResult );
@@ -1060,7 +1062,7 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
       rowLimit = (int) rep.getStepAttributeInteger( id_step, "limit" );
       encoding = rep.getStepAttributeString( id_step, "encoding" );
       String addToResult = rep.getStepAttributeString( id_step, "add_to_result_filenames" );
-      if ( Const.isEmpty( addToResult ) ) {
+      if ( Utils.isEmpty( addToResult ) ) {
         isaddresult = true;
       } else {
         isaddresult = rep.getStepAttributeBoolean( id_step, "add_to_result_filenames" );
@@ -1163,7 +1165,7 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
         ? acceptingStep.getName() : "" ) );
 
       for ( int i = 0; i < fileName.length; i++ ) {
-        rep.saveStepAttribute( id_transformation, id_step, i, "file_name", fileName[i] );
+        rep.saveStepAttribute( id_transformation, id_step, i, "file_name", getValueOrEmptyIfNull( fileName[i] ) );
         rep.saveStepAttribute( id_transformation, id_step, i, "file_mask", fileMask[i] );
         rep.saveStepAttribute( id_transformation, id_step, i, "exclude_file_mask", excludeFileMask[i] );
         rep.saveStepAttribute( id_transformation, id_step, i, "file_required", fileRequired[i] );
@@ -1171,13 +1173,13 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
       }
 
       for ( int i = 0; i < sheetName.length; i++ ) {
-        rep.saveStepAttribute( id_transformation, id_step, i, "sheet_name", sheetName[i] );
+        rep.saveStepAttribute( id_transformation, id_step, i, "sheet_name", getValueOrEmptyIfNull( sheetName[i] ) );
         rep.saveStepAttribute( id_transformation, id_step, i, "sheet_startrow", startRow[i] );
         rep.saveStepAttribute( id_transformation, id_step, i, "sheet_startcol", startColumn[i] );
       }
 
       for ( int i = 0; i < field.length; i++ ) {
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_name", field[i].getName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "field_name", getValueOrEmptyIfNull( field[i].getName() ) );
         rep.saveStepAttribute( id_transformation, id_step, i, "field_type", field[i].getTypeDesc() );
         rep.saveStepAttribute( id_transformation, id_step, i, "field_length", field[i].getLength() );
         rep.saveStepAttribute( id_transformation, id_step, i, "field_precision", field[i].getPrecision() );
@@ -1220,6 +1222,10 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
 
+  }
+
+  private String getValueOrEmptyIfNull( String str ) {
+    return str == null ? StringUtils.EMPTY : str;
   }
 
   public static final int getTrimTypeByCode( String tt ) {
@@ -1278,7 +1284,7 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public String getLookupStepname() {
-    if ( acceptingFilenames && acceptingStep != null && !Const.isEmpty( acceptingStep.getName() ) ) {
+    if ( acceptingFilenames && acceptingStep != null && !Utils.isEmpty( acceptingStep.getName() ) ) {
       return acceptingStep.getName();
     }
     return null;
@@ -1540,7 +1546,7 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
    * @return true if all sheets are read.
    */
   public boolean readAllSheets() {
-    return Const.isEmpty( sheetName ) || ( sheetName.length == 1 && Const.isEmpty( sheetName[0] ) );
+    return Utils.isEmpty( sheetName ) || ( sheetName.length == 1 && Utils.isEmpty( sheetName[0] ) );
   }
 
   /**
@@ -1569,7 +1575,7 @@ public class ExcelInputMeta extends BaseStepMeta implements StepMetaInterface {
         //
         for ( int i = 0; i < fileName.length; i++ ) {
           FileObject fileObject = KettleVFS.getFileObject( space.environmentSubstitute( fileName[i] ), space );
-          fileName[i] = resourceNamingInterface.nameResource( fileObject, space, Const.isEmpty( fileMask[i] ) );
+          fileName[i] = resourceNamingInterface.nameResource( fileObject, space, Utils.isEmpty( fileMask[i] ) );
         }
       }
       return null;

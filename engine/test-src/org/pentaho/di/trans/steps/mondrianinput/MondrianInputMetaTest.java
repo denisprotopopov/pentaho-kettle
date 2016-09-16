@@ -22,6 +22,11 @@
 
 package org.pentaho.di.trans.steps.mondrianinput;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.trans.steps.loadsave.LoadSaveTester;
 
 public class MondrianInputMetaTest {
@@ -43,9 +49,23 @@ public class MondrianInputMetaTest {
     List<String> attributes = Arrays.asList( "DatabaseMeta", "SQL", "Catalog", "Role",
       "VariableReplacementActive" );
 
-    LoadSaveTester<MondrianInputMeta> loadSaveTester =
-      new LoadSaveTester<MondrianInputMeta>( MondrianInputMeta.class, attributes );
-
+    LoadSaveTester<MondrianInputMeta> loadSaveTester = new LoadSaveTester<>( MondrianInputMeta.class, attributes );
     loadSaveTester.testSerialization();
+  }
+
+  @Test
+  public void testDefaults() {
+    MondrianInputMeta meta = new MondrianInputMeta();
+    meta.setDefault();
+    assertNull( meta.getDatabaseMeta() );
+    assertNotNull( meta.getSQL() );
+    assertFalse( Utils.isEmpty( meta.getSQL() ) );
+    assertFalse( meta.isVariableReplacementActive() );
+  }
+
+  @Test
+  public void testGetData() {
+    MondrianInputMeta meta = new MondrianInputMeta();
+    assertTrue( meta.getStepData() instanceof MondrianData );
   }
 }
