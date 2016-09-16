@@ -29,7 +29,6 @@ import org.apache.commons.lang.text.StrBuilder;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.EnvUtil;
-import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.laf.BasePropertyHandler;
 import org.pentaho.di.version.BuildVersion;
@@ -63,7 +62,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 /**
  * This class is used to define a number of default values for various settings throughout Kettle. It also contains a
@@ -208,7 +206,7 @@ public class Const {
    * the default comma separated list of base plugin folders.
    */
   public static final String DEFAULT_PLUGIN_BASE_FOLDERS = "plugins,"
-    + ( Utils.isEmpty( getDIHomeDirectory() ) ? "" : getDIHomeDirectory() + FILE_SEPARATOR + "plugins," )
+    + ( Const.isEmpty( getDIHomeDirectory() ) ? "" : getDIHomeDirectory() + FILE_SEPARATOR + "plugins," )
     + getKettleDirectory() + FILE_SEPARATOR + "plugins";
 
   /**
@@ -1029,14 +1027,6 @@ public class Const {
   public static final String KETTLE_SPLIT_FIELDS_REMOVE_ENCLOSURE = "KETTLE_SPLIT_FIELDS_REMOVE_ENCLOSURE";
 
   /**
-   * Compatibility settings for {@link org.pentaho.di.core.row.ValueDataUtil#hourOfDay(ValueMetaInterface, Object)}.
-   *
-   * Switches off the fix for calculation of timezone decomposition.
-   */
-  public static final String KETTLE_COMPATIBILITY_CALCULATION_TIMEZONE_DECOMPOSITION =
-    "KETTLE_COMPATIBILITY_CALCULATION_TIMEZONE_DECOMPOSITION";
-
-  /**
    * Compatibility settings for setNrErrors
    */
   // see PDI-10270 for details.
@@ -1554,7 +1544,7 @@ public class Const {
    */
   public static String optionallyQuoteStringByOS( String string ) {
     String quote = getQuoteCharByOS();
-    if ( Utils.isEmpty( string ) ) {
+    if ( isEmpty( string ) ) {
       return quote;
     }
 
@@ -1612,7 +1602,7 @@ public class Const {
     // In case we don't want to leave anything to doubt...
     //
     String systemHostname = EnvUtil.getSystemProperty( KETTLE_SYSTEM_HOSTNAME );
-    if ( !Utils.isEmpty( systemHostname ) ) {
+    if ( !isEmpty( systemHostname ) ) {
       cachedHostname = systemHostname;
       return systemHostname;
     }
@@ -1655,7 +1645,7 @@ public class Const {
     // In case we don't want to leave anything to doubt...
     //
     String systemHostname = EnvUtil.getSystemProperty( KETTLE_SYSTEM_HOSTNAME );
-    if ( !Utils.isEmpty( systemHostname ) ) {
+    if ( !isEmpty( systemHostname ) ) {
       return systemHostname;
     }
 
@@ -1952,7 +1942,7 @@ public class Const {
   public static String getDocUrl( final String uri ) {
     // initialize the docUrl to point to the top-level doc page
     String docUrl = getBaseDocUrl();
-    if ( !Utils.isEmpty( uri ) ) {
+    if ( !isEmpty( uri ) ) {
       // if the uri is not empty, use it to build the URL
       if ( uri.startsWith( "http" ) ) {
         // use what is provided, it's already absolute
@@ -2427,7 +2417,7 @@ public class Const {
     String[] delimiterSplit = stringToSplit.split( Pattern.quote( delimiter ) );
 
     // At this point, if the enclosure is null or empty, we will return the delimiter split
-    if ( Utils.isEmpty( enclosure ) ) {
+    if ( isEmpty( enclosure ) ) {
       return delimiterSplit;
     }
 
@@ -2575,31 +2565,15 @@ public class Const {
   }
 
   /**
-   * Check if the string supplied is empty. A String is empty when it is null or when the length is 0
-   *
-   * @param val
-   *          The value to check
-   * @return true if the string supplied is empty
-   * @deprecated
-   * @see org.pentaho.di.core.util.Utils.isEmpty
-   */
-  @Deprecated
-  public static boolean isEmpty( String val ) {
-    return Utils.isEmpty( val );
-  }
-
-  /**
-   * Check if the stringBuffer supplied is empty. A StringBuffer is empty when it is null or when the length is 0
+   * Check if the CharSequence (String, StringBuffer, StringBuilder) supplied is empty.
+   * A CharSequence is empty when it is null or when the length is 0
    *
    * @param string
-   *          The stringBuffer to check
-   * @return true if the stringBuffer supplied is empty
-   * @deprecated
-   * @see org.pentaho.di.core.util.Utils.isEmpty
+   *          The string to check
+   * @return true if the string supplied is empty
    */
-  @Deprecated
-  public static boolean isEmpty( StringBuffer val ) {
-    return Utils.isEmpty( val );
+  public static boolean isEmpty( CharSequence string ) {
+    return string == null || string.length() == 0;
   }
 
   /**
@@ -2609,41 +2583,9 @@ public class Const {
    * @param strings
    *          The string array to check
    * @return true if the string array supplied is empty
-   * @deprecated
-   * @see org.pentaho.di.core.util.Utils.isEmpty
    */
-  @Deprecated
-  public static boolean isEmpty( String[] vals ) {
-    return Utils.isEmpty( vals );
-  }
-
-  /**
-   * Check if the CharSequence supplied is empty. A CharSequence is empty when it is null or when the length is 0
-   *
-   * @param string
-   *          The stringBuffer to check
-   * @return true if the stringBuffer supplied is empty
-   * @deprecated
-   * @see org.pentaho.di.core.util.Utils.isEmpty
-   */
-  @Deprecated
-  public static boolean isEmpty( CharSequence val ) {
-    return Utils.isEmpty( val );
-  }
-
-  /**
-   * Check if the CharSequence array supplied is empty. A CharSequence array is empty when it is null or when the number of elements
-   * is 0
-   *
-   * @param strings
-   *          The string array to check
-   * @return true if the string array supplied is empty
-   * @deprecated
-   * @see org.pentaho.di.core.util.Utils.isEmpty
-   */
-  @Deprecated
-  public static boolean isEmpty( CharSequence[] vals ) {
-    return Utils.isEmpty( vals );
+  public static boolean isEmpty( CharSequence[] strings ) {
+    return strings == null || strings.length == 0;
   }
 
   /**
@@ -2652,12 +2594,9 @@ public class Const {
    * @param array
    *          The array to check
    * @return true if the array supplied is empty
-   * @deprecated
-   * @see org.pentaho.di.core.util.Utils.isEmpty
    */
-  @Deprecated
   public static boolean isEmpty( Object[] array ) {
-    return Utils.isEmpty( array );
+    return array == null || array.length == 0;
   }
 
   /**
@@ -2666,12 +2605,9 @@ public class Const {
    * @param list
    *          the list to check
    * @return true if the supplied list is empty
-   * @deprecated
-   * @see org.pentaho.di.core.util.Utils.isEmpty
    */
-  @Deprecated
   public static boolean isEmpty( List<?> list ) {
-    return Utils.isEmpty( list );
+    return list == null || list.size() == 0;
   }
 
   /**
@@ -2763,7 +2699,7 @@ public class Const {
   }
 
   public static String createName( String filename ) {
-    if ( Utils.isEmpty( filename ) ) {
+    if ( Const.isEmpty( filename ) ) {
       return filename;
     }
 
@@ -2804,7 +2740,7 @@ public class Const {
    * @return
    */
   public static String filenameOnly( String sFullPath ) {
-    if ( Utils.isEmpty( sFullPath ) ) {
+    if ( Const.isEmpty( sFullPath ) ) {
       return sFullPath;
     }
 
@@ -2999,7 +2935,7 @@ public class Const {
    */
 
   public static String removeDigits( String input ) {
-    if ( Utils.isEmpty( input ) ) {
+    if ( Const.isEmpty( input ) ) {
       return null;
     }
     StringBuilder digitsOnly = new StringBuilder();
@@ -3019,7 +2955,7 @@ public class Const {
    * @return digits in a string.
    */
   public static String getDigitsOnly( String input ) {
-    if ( Utils.isEmpty( input ) ) {
+    if ( Const.isEmpty( input ) ) {
       return null;
     }
     StringBuilder digitsOnly = new StringBuilder();
@@ -3069,7 +3005,7 @@ public class Const {
    * @return escaped content
    */
   public static String escapeXML( String content ) {
-    if ( Utils.isEmpty( content ) ) {
+    if ( isEmpty( content ) ) {
       return content;
     }
     return StringEscapeUtils.escapeXml( content );
@@ -3083,7 +3019,7 @@ public class Const {
    * @return escaped content
    */
   public static String escapeHtml( String content ) {
-    if ( Utils.isEmpty( content ) ) {
+    if ( isEmpty( content ) ) {
       return content;
     }
     return StringEscapeUtils.escapeHtml( content );
@@ -3097,7 +3033,7 @@ public class Const {
    * @return unescaped content
    */
   public static String unEscapeHtml( String content ) {
-    if ( Utils.isEmpty( content ) ) {
+    if ( isEmpty( content ) ) {
       return content;
     }
     return StringEscapeUtils.unescapeHtml( content );
@@ -3111,7 +3047,7 @@ public class Const {
    * @return unescaped content
    */
   public static String unEscapeXml( String content ) {
-    if ( Utils.isEmpty( content ) ) {
+    if ( isEmpty( content ) ) {
       return content;
     }
     return StringEscapeUtils.unescapeXml( content );
@@ -3125,7 +3061,7 @@ public class Const {
    * @return escaped content
    */
   public static String escapeSQL( String content ) {
-    if ( Utils.isEmpty( content ) ) {
+    if ( isEmpty( content ) ) {
       return content;
     }
     return StringEscapeUtils.escapeSql( content );
@@ -3234,7 +3170,7 @@ public class Const {
    * @return date = input + time
    */
   public static Date addTimeToDate( Date input, String time, String DateFormat ) throws Exception {
-    if ( Utils.isEmpty( time ) ) {
+    if ( isEmpty( time ) ) {
       return input;
     }
     if ( input == null ) {
@@ -3321,7 +3257,7 @@ public class Const {
    * @return protected content
    */
   public static String protectXMLCDATA( String content ) {
-    if ( Utils.isEmpty( content ) ) {
+    if ( isEmpty( content ) ) {
       return content;
     }
     return "<![CDATA[" + content + "]]>";
@@ -3357,7 +3293,7 @@ public class Const {
    * @return masked content
    */
   public static String escapeXml( String content ) {
-    if ( Utils.isEmpty( content ) ) {
+    if ( isEmpty( content ) ) {
       return content;
     }
     return StringEscapeUtils.escapeXml( content );
