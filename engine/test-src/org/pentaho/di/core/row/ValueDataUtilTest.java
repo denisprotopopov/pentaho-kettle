@@ -893,5 +893,4 @@ public class ValueDataUtilTest {
       throw new RuntimeException( e );
     }
   }
-  
 }
