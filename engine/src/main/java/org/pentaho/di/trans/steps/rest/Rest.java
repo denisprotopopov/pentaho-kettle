@@ -22,6 +22,7 @@
 
 package org.pentaho.di.trans.steps.rest;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,6 +42,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.uri.UriComponent;
+import com.sun.jersey.core.header.FormDataContentDisposition;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.json.simple.JSONObject;
 import org.pentaho.di.core.Const;
@@ -67,6 +69,9 @@ import com.sun.jersey.client.apache.config.ApacheHttpClientConfig;
 import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.MultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
 
 /**
  * @author Samatar
@@ -181,7 +186,21 @@ public class Rest extends BaseStep implements StepInterface {
         if ( data.method.equals( RestMeta.HTTP_METHOD_GET ) ) {
           response = builder.get( ClientResponse.class );
         } else if ( data.method.equals( RestMeta.HTTP_METHOD_POST ) ) {
-          response = builder.type( data.mediaType ).post( ClientResponse.class, entityString );
+          File fileToUpload = new File( "d:/temp/B.kjb" );
+          FileDataBodyPart filePart = new FileDataBodyPart( "fileUpload", fileToUpload );
+          filePart.setContentDisposition(
+            FormDataContentDisposition.name( "fileUpload" )
+              .fileName( fileToUpload.getName() ).build() );
+
+
+          MultiPart multipartEntity = new FormDataMultiPart()
+            .field( "importDir", "/public", MediaType.TEXT_PLAIN_TYPE)
+            .field( "overwriteAclPermissions", "true", MediaType.TEXT_PLAIN_TYPE)
+            .bodyPart( filePart );
+          multipartEntity.setMediaType( MediaType.MULTIPART_FORM_DATA_TYPE );
+          response = builder.type( data.mediaType ).post( ClientResponse.class, multipartEntity );
+
+          //response = builder.type( data.mediaType ).post( ClientResponse.class, entityString );
         } else if ( data.method.equals( RestMeta.HTTP_METHOD_PUT ) ) {
           response = builder.type( data.mediaType ).put( ClientResponse.class, entityString );
         } else if ( data.method.equals( RestMeta.HTTP_METHOD_DELETE ) ) {
@@ -563,6 +582,8 @@ public class Rest extends BaseStep implements StepInterface {
         data.mediaType = MediaType.APPLICATION_SVG_XML_TYPE;
       } else if ( applicationType.equals( RestMeta.APPLICATION_TYPE_TEXT_XML ) ) {
         data.mediaType = MediaType.TEXT_XML_TYPE;
+      } else if ( applicationType.equals( RestMeta.APPLICATION_TYPE_MULTIPART_FORM_DATA ) ) {
+        data.mediaType = MediaType.MULTIPART_FORM_DATA_TYPE;
       } else {
         data.mediaType = MediaType.TEXT_PLAIN_TYPE;
       }

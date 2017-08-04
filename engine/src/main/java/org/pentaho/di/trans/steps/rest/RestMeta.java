@@ -63,7 +63,7 @@ public class RestMeta extends BaseStepMeta implements StepMetaInterface {
   private static Class<?> PKG = RestMeta.class; // for i18n purposes, needed by Translator2!!
 
   public static final String[] APPLICATION_TYPES = new String[] {
-    "TEXT PLAIN", "XML", "JSON", "OCTET STREAM", "XHTML", "FORM URLENCODED", "ATOM XML", "SVG XML", "TEXT XML" };
+    "TEXT PLAIN", "XML", "JSON", "OCTET STREAM", "XHTML", "FORM URLENCODED", "ATOM XML", "SVG XML", "TEXT XML", "MULTIPART FORM DATA" };
   public static final String APPLICATION_TYPE_TEXT_PLAIN = "TEXT PLAIN";
   public static final String APPLICATION_TYPE_XML = "XML";
   public static final String APPLICATION_TYPE_JSON = "JSON";
@@ -73,6 +73,7 @@ public class RestMeta extends BaseStepMeta implements StepMetaInterface {
   public static final String APPLICATION_TYPE_ATOM_XML = "ATOM XML";
   public static final String APPLICATION_TYPE_SVG_XML = "SVG XML";
   public static final String APPLICATION_TYPE_TEXT_XML = "TEXT XML";
+  public static final String APPLICATION_TYPE_MULTIPART_FORM_DATA = "MULTIPART FORM DATA";
 
   private String applicationType;
 
